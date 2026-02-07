@@ -6,7 +6,7 @@
 }
 
 body {
-  background: #0d0f14;
+  background: radial-gradient(circle at top, #1a2040, #0b0e17 60%);
   color: #f7f8fa;
 }
 
@@ -17,12 +17,13 @@ body {
 }
 
 .sidebar {
-  background: #141824;
+  background: linear-gradient(160deg, rgba(24, 30, 56, 0.95), rgba(12, 14, 24, 0.95));
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
   gap: 32px;
   border-right: 1px solid #1f2533;
+  box-shadow: inset 0 0 30px rgba(77, 124, 255, 0.08);
 }
 
 .sidebar h1 {
@@ -37,8 +38,8 @@ body {
 }
 
 .sidebar button {
-  background: transparent;
-  border: 1px solid #222a3b;
+  background: rgba(18, 22, 36, 0.6);
+  border: 1px solid rgba(77, 124, 255, 0.2);
   color: #c6cbe1;
   padding: 10px 14px;
   border-radius: 10px;
@@ -49,7 +50,8 @@ body {
 
 .sidebar button.active,
 .sidebar button:hover {
-  background: #20283a;
+  background: linear-gradient(120deg, rgba(77, 124, 255, 0.3), rgba(108, 246, 255, 0.2));
+  border-color: rgba(108, 246, 255, 0.6);
   color: #ffffff;
 }
 
@@ -61,7 +63,7 @@ body {
 
 main {
   padding: 32px 40px;
-  background: radial-gradient(circle at top, #161b28, #0d0f14 60%);
+  background: radial-gradient(circle at top, rgba(28, 36, 68, 0.9), #0d0f14 60%);
 }
 
 .section-header {
@@ -89,8 +91,8 @@ main {
 
 .filters select,
 .filters input {
-  background: #141824;
-  border: 1px solid #263148;
+  background: rgba(20, 24, 36, 0.8);
+  border: 1px solid rgba(77, 124, 255, 0.25);
   color: #dbe0f5;
   padding: 8px 12px;
   border-radius: 8px;
@@ -110,11 +112,12 @@ main {
 }
 
 .card {
-  background: #141824;
-  border: 1px solid #1f2533;
+  background: linear-gradient(150deg, rgba(24, 30, 56, 0.9), rgba(12, 16, 28, 0.92));
+  border: 1px solid rgba(77, 124, 255, 0.15);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 18px 40px rgba(8, 12, 24, 0.45), inset 0 0 30px rgba(77, 124, 255, 0.05);
+  backdrop-filter: blur(6px);
 }
 
 .card h3 {
@@ -133,8 +136,8 @@ label {
 input,
 textarea,
 select {
-  background: #0f1320;
-  border: 1px solid #2a3550;
+  background: rgba(15, 19, 32, 0.9);
+  border: 1px solid rgba(77, 124, 255, 0.25);
   color: #f6f8ff;
   padding: 10px 12px;
   border-radius: 10px;
@@ -152,13 +155,32 @@ textarea {
 }
 
 button.primary {
-  background: #4d7cff;
+  background: linear-gradient(120deg, #4d7cff, #6cf6ff);
   border: none;
   color: #ffffff;
   padding: 12px 16px;
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
+  box-shadow: 0 10px 24px rgba(77, 124, 255, 0.35);
+}
+
+button.ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #dbe0f5;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button.danger {
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.45);
+  color: #ffb4ab;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .task-list,
@@ -173,13 +195,14 @@ button.primary {
 .task-list li,
 .info-list li,
 .activity-list li {
-  background: #0f1320;
-  border: 1px solid #20283a;
+  background: rgba(15, 19, 32, 0.85);
+  border: 1px solid rgba(77, 124, 255, 0.12);
   border-radius: 12px;
   padding: 16px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  align-items: flex-start;
 }
 
 .task-list h4,
@@ -202,6 +225,29 @@ button.primary {
   font-size: 12px;
   color: #8d94ad;
   min-width: 140px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.edit-form {
+  width: 100%;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.edit-grid .wide {
+  grid-column: 1 / -1;
 }
 
 .pill {

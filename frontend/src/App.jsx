@@ -60,6 +60,13 @@ export default function App() {
     search: "",
   });
 
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [taskEdit, setTaskEdit] = useState(null);
+  const [editingMemberId, setEditingMemberId] = useState(null);
+  const [memberEdit, setMemberEdit] = useState(null);
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [projectEdit, setProjectEdit] = useState(null);
+
   const filteredTasks = useMemo(() => {
     return tasksState.data
       .filter((task) => (filter.assignee_id ? task.assignee_id === filter.assignee_id : true))
@@ -106,6 +113,40 @@ export default function App() {
     await activityState.refresh();
   };
 
+  const handleEditTask = (task) => {
+    setEditingTaskId(task.id);
+    setTaskEdit({
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      due_date: task.due_date || "",
+      reminder_date: task.reminder_date || "",
+      assignee_id: task.assignee_id || "",
+      project_id: task.project_id || "",
+      comments: task.comments || "",
+    });
+  };
+
+  const handleUpdateTask = async (event, taskId) => {
+    event.preventDefault();
+    await fetch(`${API_BASE}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...taskEdit, updated_by: "local-user" }),
+    });
+    setEditingTaskId(null);
+    setTaskEdit(null);
+    await tasksState.refresh();
+    await activityState.refresh();
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    await fetch(`${API_BASE}/tasks/${taskId}`, { method: "DELETE" });
+    await tasksState.refresh();
+    await activityState.refresh();
+  };
+
   const handleCreateMember = async (event) => {
     event.preventDefault();
     await fetch(`${API_BASE}/team-members`, {
@@ -118,6 +159,30 @@ export default function App() {
     await activityState.refresh();
   };
 
+  const handleEditMember = (member) => {
+    setEditingMemberId(member.id);
+    setMemberEdit({ name: member.name, role: member.role, email: member.email });
+  };
+
+  const handleUpdateMember = async (event, memberId) => {
+    event.preventDefault();
+    await fetch(`${API_BASE}/team-members/${memberId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(memberEdit),
+    });
+    setEditingMemberId(null);
+    setMemberEdit(null);
+    await membersState.refresh();
+    await activityState.refresh();
+  };
+
+  const handleDeleteMember = async (memberId) => {
+    await fetch(`${API_BASE}/team-members/${memberId}`, { method: "DELETE" });
+    await membersState.refresh();
+    await activityState.refresh();
+  };
+
   const handleCreateProject = async (event) => {
     event.preventDefault();
     await fetch(`${API_BASE}/projects`, {
@@ -126,6 +191,34 @@ export default function App() {
       body: JSON.stringify(projectForm),
     });
     setProjectForm({ name: "", description: "", status: "Active" });
+    await projectsState.refresh();
+    await activityState.refresh();
+  };
+
+  const handleEditProject = (project) => {
+    setEditingProjectId(project.id);
+    setProjectEdit({
+      name: project.name,
+      description: project.description,
+      status: project.status,
+    });
+  };
+
+  const handleUpdateProject = async (event, projectId) => {
+    event.preventDefault();
+    await fetch(`${API_BASE}/projects/${projectId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(projectEdit),
+    });
+    setEditingProjectId(null);
+    setProjectEdit(null);
+    await projectsState.refresh();
+    await activityState.refresh();
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    await fetch(`${API_BASE}/projects/${projectId}`, { method: "DELETE" });
     await projectsState.refresh();
     await activityState.refresh();
   };
@@ -337,18 +430,149 @@ export default function App() {
                   <ul className="task-list">
                     {filteredTasks.map((task) => (
                       <li key={task.id}>
-                        <div>
-                          <h4>{task.title}</h4>
-                          <p>{task.description || "No description"}</p>
-                          <span className={`pill ${task.status.replace(" ", "-").toLowerCase()}`}>
-                            {task.status}
-                          </span>
-                          <span className="pill neutral">{task.priority}</span>
-                        </div>
-                        <div className="meta">
-                          <span>Due: {task.due_date || "Not set"}</span>
-                          <span>Assignee: {task.assignee_id || "Unassigned"}</span>
-                        </div>
+                        {editingTaskId === task.id && taskEdit ? (
+                          <form className="edit-form" onSubmit={(event) => handleUpdateTask(event, task.id)}>
+                            <div className="edit-grid">
+                              <label>
+                                Title
+                                <input
+                                  value={taskEdit.title}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, title: event.target.value })
+                                  }
+                                  required
+                                />
+                              </label>
+                              <label>
+                                Status
+                                <select
+                                  value={taskEdit.status}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, status: event.target.value })
+                                  }
+                                >
+                                  {statusOptions.map((status) => (
+                                    <option key={status} value={status}>
+                                      {status}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                Priority
+                                <select
+                                  value={taskEdit.priority}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, priority: event.target.value })
+                                  }
+                                >
+                                  {priorityOptions.map((priority) => (
+                                    <option key={priority} value={priority}>
+                                      {priority}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                Due Date
+                                <input
+                                  type="date"
+                                  value={taskEdit.due_date}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, due_date: event.target.value })
+                                  }
+                                />
+                              </label>
+                              <label>
+                                Assignee
+                                <select
+                                  value={taskEdit.assignee_id}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, assignee_id: event.target.value })
+                                  }
+                                >
+                                  <option value="">Unassigned</option>
+                                  {membersState.data.map((member) => (
+                                    <option key={member.id} value={member.id}>
+                                      {member.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                Project
+                                <select
+                                  value={taskEdit.project_id}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, project_id: event.target.value })
+                                  }
+                                >
+                                  <option value="">General</option>
+                                  {projectsState.data.map((project) => (
+                                    <option key={project.id} value={project.id}>
+                                      {project.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label className="wide">
+                                Description
+                                <textarea
+                                  value={taskEdit.description}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, description: event.target.value })
+                                  }
+                                />
+                              </label>
+                              <label className="wide">
+                                Notes
+                                <textarea
+                                  value={taskEdit.comments}
+                                  onChange={(event) =>
+                                    setTaskEdit({ ...taskEdit, comments: event.target.value })
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <div className="actions">
+                              <button type="submit" className="primary">
+                                Save
+                              </button>
+                              <button type="button" className="ghost" onClick={() => setEditingTaskId(null)}>
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <>
+                            <div>
+                              <h4>{task.title}</h4>
+                              <p>{task.description || "No description"}</p>
+                              <span
+                                className={`pill ${task.status.replace(" ", "-").toLowerCase()}`}
+                              >
+                                {task.status}
+                              </span>
+                              <span className="pill neutral">{task.priority}</span>
+                            </div>
+                            <div className="meta">
+                              <span>Due: {task.due_date || "Not set"}</span>
+                              <span>Assignee: {task.assignee_id || "Unassigned"}</span>
+                              <div className="actions">
+                                <button type="button" className="ghost" onClick={() => handleEditTask(task)}>
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  onClick={() => handleDeleteTask(task.id)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -407,12 +631,77 @@ export default function App() {
                   <ul className="info-list">
                     {membersState.data.map((member) => (
                       <li key={member.id}>
-                        <div>
-                          <h4>{member.name}</h4>
-                          <p>{member.role}</p>
-                          <small>{member.email}</small>
-                        </div>
-                        <span className="pill neutral">{member.workload} active tasks</span>
+                        {editingMemberId === member.id && memberEdit ? (
+                          <form
+                            className="edit-form"
+                            onSubmit={(event) => handleUpdateMember(event, member.id)}
+                          >
+                            <div className="edit-grid">
+                              <label>
+                                Name
+                                <input
+                                  value={memberEdit.name}
+                                  onChange={(event) =>
+                                    setMemberEdit({ ...memberEdit, name: event.target.value })
+                                  }
+                                  required
+                                />
+                              </label>
+                              <label>
+                                Role
+                                <input
+                                  value={memberEdit.role}
+                                  onChange={(event) =>
+                                    setMemberEdit({ ...memberEdit, role: event.target.value })
+                                  }
+                                  required
+                                />
+                              </label>
+                              <label className="wide">
+                                Email
+                                <input
+                                  type="email"
+                                  value={memberEdit.email}
+                                  onChange={(event) =>
+                                    setMemberEdit({ ...memberEdit, email: event.target.value })
+                                  }
+                                  required
+                                />
+                              </label>
+                            </div>
+                            <div className="actions">
+                              <button type="submit" className="primary">
+                                Save
+                              </button>
+                              <button type="button" className="ghost" onClick={() => setEditingMemberId(null)}>
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <>
+                            <div>
+                              <h4>{member.name}</h4>
+                              <p>{member.role}</p>
+                              <small>{member.email}</small>
+                            </div>
+                            <div className="meta">
+                              <span className="pill neutral">{member.workload} active tasks</span>
+                              <div className="actions">
+                                <button type="button" className="ghost" onClick={() => handleEditMember(member)}>
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  onClick={() => handleDeleteMember(member.id)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -474,11 +763,71 @@ export default function App() {
                   <ul className="info-list">
                     {projectsState.data.map((project) => (
                       <li key={project.id}>
-                        <div>
-                          <h4>{project.name}</h4>
-                          <p>{project.description || "No description"}</p>
-                          <small>Status: {project.status}</small>
-                        </div>
+                        {editingProjectId === project.id && projectEdit ? (
+                          <form
+                            className="edit-form"
+                            onSubmit={(event) => handleUpdateProject(event, project.id)}
+                          >
+                            <div className="edit-grid">
+                              <label>
+                                Name
+                                <input
+                                  value={projectEdit.name}
+                                  onChange={(event) =>
+                                    setProjectEdit({ ...projectEdit, name: event.target.value })
+                                  }
+                                  required
+                                />
+                              </label>
+                              <label>
+                                Status
+                                <input
+                                  value={projectEdit.status}
+                                  onChange={(event) =>
+                                    setProjectEdit({ ...projectEdit, status: event.target.value })
+                                  }
+                                />
+                              </label>
+                              <label className="wide">
+                                Description
+                                <textarea
+                                  value={projectEdit.description}
+                                  onChange={(event) =>
+                                    setProjectEdit({ ...projectEdit, description: event.target.value })
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <div className="actions">
+                              <button type="submit" className="primary">
+                                Save
+                              </button>
+                              <button type="button" className="ghost" onClick={() => setEditingProjectId(null)}>
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <>
+                            <div>
+                              <h4>{project.name}</h4>
+                              <p>{project.description || "No description"}</p>
+                              <small>Status: {project.status}</small>
+                            </div>
+                            <div className="actions">
+                              <button type="button" className="ghost" onClick={() => handleEditProject(project)}>
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="danger"
+                                onClick={() => handleDeleteProject(project.id)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
